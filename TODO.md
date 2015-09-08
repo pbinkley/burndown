@@ -1,0 +1,21 @@
+burndown chart - todo
+
+- navigation 
+	- with no hash: give input box - accept org/person, repo, milestone
+		- ualbertalib
+		- ualbertalib/hydranorth
+		- ualbertalib/hydranorth/25
+	- org/person:
+		- show menu of repos
+	- org/person, repo
+		- show menu of open milestones
+		- option to show graph of closed milestones with number of points
+	- org/person, repo, milestone
+		- show chart (done)
+	- org/person, repo, "current"
+		- fetch list of milestones, show one whose title begins with "Sprint" and whose due date is within two weeks in future - if more than one, show one with earliest due date
+- features
+	- proxy API requests, so as to allow use of token: avoid reaching limit of requests/hour, and also allow writes
+	- display more issue-level metadata - could we get number of checkboxes, number checked?
+	- ability to close issues from burndown
+	- authentication
