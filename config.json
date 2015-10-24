@@ -1,0 +1,17 @@
+{
+	"owner": "ualbertalib",
+	"repo": "hydranorth",
+	"milestone": "20",
+	"holidays": ["2015-07-01","2015-08-03","2015-09-07","2015-10-12",
+	    "2015-11-11","2015-12-25","2015-12-28","2015-12-29","2015-12-30",
+	    "2015-12-31"],
+	"workweek": [1,2,3,4,5],
+	"sizes": [
+        {"label": "size:xlarge", "points": 64},
+        {"label": "size:large", "points": 16},
+        {"label": "size:medium", "points": 4},
+        {"label": "size:small", "points": 2},
+        {"label": "size:xsmall", "points": 1}
+	],
+	"defaultpoints": 4
+}
