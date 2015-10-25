@@ -1,4 +1,17 @@
-var hash = window.location.hash;
+$.urlParam = function(name, url) {
+    if (!url) {
+     url = window.location.href;
+    }
+    var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(url);
+    if (!results) { 
+        return undefined;
+    }
+    return results[1] || undefined;
+}
+
+var owner = $.urlParam("owner");
+var repo = $.urlParam("repo");
+var milestone = $.urlParam("milestone");
 
 var issuedata = {
     "closed": {"issues": 0, "points": 0},
@@ -63,14 +76,25 @@ ideal;
 
 $(document).ready(function(){
 
+    if (!(owner && repo && milestone)) {
+    var form = $('<form method="GET" action="">' + 
+        'Owner: <input type="text" name="owner" value="' + owner + '"><br/>' + 
+        'Repo: <input type="text" name="repo" value="' + repo + '"><br/>' +
+        'Milestone: <input type="text" name="milestone" value="' + milestone + '"><br/>' +
+        '<input type="submit" value="Submit">' +
+        '</form>');
+        $("#chart").append(form);
+    }
+    else {
+
+
     $.getJSON( "config.json", function( config ) {
 
         // parse hash; should be like #ualbertalib/hydranorth/20
-        if (hash != "") {
-            parts = hash.substring(1).split("/");
-            config.owner = parts[0];
-            config.repo = parts[1];
-            config.milestone = parts[2];
+        if (owner && repo && milestone) {
+            config.owner = owner;
+            config.repo = repo;
+            config.milestone = milestone;
         }
 
         // fetch milestone from GitHub API
@@ -275,5 +299,10 @@ $(document).ready(function(){
             .attr("d", actualLine);
 
         })
+  
     })
+
+}
+
+
 });
