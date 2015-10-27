@@ -13,5 +13,10 @@
         {"label": "size:small", "points": 2},
         {"label": "size:xsmall", "points": 1}
 	],
-	"defaultpoints": 4
+	"defaultpoints": 4,
+	"priorities": [
+		"priority:high", 
+		"priority:medium", 
+		"priority:low"
+	]
 }

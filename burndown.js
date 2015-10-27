@@ -26,16 +26,9 @@ function sortByClosedAt(a, b){
     return date1 > date2 ? 1 : -1;
 }
 
-function showIssue(issue) {
+function showIssue(ul, issue) {
     // build li element containing issue description
     // attach to appropriate ul in issues div
-    var status;
-    if (issue.closed_at)
-        status="closed"
-    else if (issue.assignee)
-        status="wip"
-    else status="ready";
-
     var li = $("<li>");
     if (issue.assignee) {
         li.append("<img class='avatar' " +
@@ -54,10 +47,7 @@ function showIssue(issue) {
             issue.labels[i].name) + "</span>";
     }
 
-    $("#" + status).append(li);
-
-    issuedata[status].issues += 1;
-    issuedata[status].points += issue.burndown_points;
+    ul.append(li);
 
 }
 
@@ -79,7 +69,7 @@ function showMilestone(owner, repo, milestone) {
         '&state=all&sort=created&direction=asc&milestone=' + milestone, 
         function(data){
 
-        // parse milestone
+        // sort issues by closed timestamp, to build the graph
         jsonData = data.sort(sortByClosedAt);
 
         // count open and closed issues
@@ -118,7 +108,54 @@ function showMilestone(owner, repo, milestone) {
                 actual.push({date: new Date(jsonData[i].closed_at), points: closedPoints});
                 issueData.push('#' + jsonData[i].number + ': ' + jsonData[i].title);
             }
-            showIssue(jsonData[i]);
+        });
+
+        // re-sort by priority
+        var sortedIssues = [];
+        // create array of arrays, using priority labels plus "none", into which to gather issues
+        var priorities = config.priorities.slice();
+        priorities.push("none");
+        $.each(priorities, function(i, priority) {
+            sortedIssues[priority] = [];
+        });
+        // populate arrays of issues according to priority label
+        $.each(jsonData, function(i, issue){
+            var status;
+            if (issue.closed_at)
+                status="closed"
+            else if (issue.assignee)
+                status="wip"
+            else status="ready";
+            issuedata[status].issues += 1;
+            issuedata[status].points += issue.burndown_points;
+
+            var labelFound = false;
+            $.each(issue.labels, function(j, label){
+                if ($.inArray(label.name, config.priorities) > -1) {
+                    if (!sortedIssues[label.name][status])
+                        sortedIssues[label.name][status] = [];
+                    sortedIssues[label.name][status].push(issue);
+                    labelFound = true;
+                }
+            });
+            if (!labelFound) {
+                if (!sortedIssues["none"][status])
+                    sortedIssues["none"][status] = [];
+                sortedIssues["none"][status].push(issue);
+            }
+        });
+
+        // show issues in columns
+        $.each(["closed", "wip", "ready"], function(j, status) {
+            $.each(priorities, function(i, priority) {
+                if (sortedIssues[priority][status]) {
+                    ul = $("<ul class='" + priority + "'>")
+                        $.each(sortedIssues[priority][status], function(k, issue){
+                            showIssue(ul, issue);
+                        });
+                    $("#" + status).append(ul);
+                }
+            });
         });
 
         // add counts to column headers
@@ -172,7 +209,7 @@ function showMilestone(owner, repo, milestone) {
             cur.setDate(cur.getDate() + 1);
         }
 
-        pointsPerDay = totalPoints / workdays,
+        pointsPerDay = totalPoints / workdays;
 
         // assign points to days for ideal line
         cur.setTime(start.getTime());

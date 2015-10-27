@@ -6,6 +6,10 @@
 }
 .list {
     line-height: 125%; 
+    float: left;
+}
+.list ul {
+    margin-bottom: 30px;
 }
 .list ul li {
     margin-top: 10px;
