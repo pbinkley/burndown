@@ -9,10 +9,6 @@ $.urlParam = function(name, url) {
     return results[1] || undefined;
 }
 
-var owner = $.urlParam("owner");
-var repo = $.urlParam("repo");
-var milestone = $.urlParam("milestone");
-
 var issuedata = {
     "closed": {"issues": 0, "points": 0},
     "wip": {"issues": 0, "points": 0},
@@ -64,23 +60,22 @@ function showIssue(issue) {
 
 }
 
-var perPage = 30,
-totalPages = 0,
-totalIssues = 0,
-totalPoints = 0,
-closedPoints = 0,
-numberOfClosedIssues = 0,
-numberOfOpenIssues = 0,
-actual = [], jsonData = [], issueData = [],
-ideal,
-config;
+function showMilestone(owner, repo, milestone, config) {
 
-function showMilestone(owner, repo, milestone) {
+    var perPage = 30,
+    totalPages = 0,
+    totalIssues = 0,
+    totalPoints = 0,
+    closedPoints = 0,
+    numberOfClosedIssues = 0,
+    numberOfOpenIssues = 0,
+    actual = [], jsonData = [], issueData = [],
+    ideal;
 
     // fetch milestone from GitHub API
-    $.getJSON('https://api.github.com/repos/' + config.owner + '/' + config.repo + 
+    $.getJSON('https://api.github.com/repos/' + owner + '/' + repo + 
         '/issues?' + 
-        '&state=all&sort=created&direction=asc&milestone=' + config.milestone, 
+        '&state=all&sort=created&direction=asc&milestone=' + milestone, 
         function(data){
 
         // parse milestone
@@ -159,6 +154,7 @@ function showMilestone(owner, repo, milestone) {
         // does not go down.
 
         var cur = new Date(),
+        isworkday = [],
         curPoints = totalPoints,
         workdays = 0,
         pointsPerDay = 0,
@@ -170,8 +166,12 @@ function showMilestone(owner, repo, milestone) {
             weekday = cur.getDay();
             datestring = cur.toISOString().substring(0, 10); // get yyyy-mm-dd
             // workdays: weekday is on workweek list and date is not on holidays list
-            if ((config.workweek.indexOf(weekday) > -1) && (config.holidays.indexOf(datestring) == -1))
+            if ((config.workweek.indexOf(weekday) > -1) && (config.holidays.indexOf(datestring) == -1)) {
                 workdays++;
+                isworkday.push(true);
+            }
+            else
+                isworkday.push(false);
             cur.setDate(cur.getDate() + 1);
         }
 
@@ -179,13 +179,15 @@ function showMilestone(owner, repo, milestone) {
 
         // assign points to days for ideal line
         cur.setTime(start.getTime());
+        i = 0;
         while(cur <= end) {
             ideal.push({date:new Date(cur.getTime()), points: curPoints});
             weekday = cur.getDay();
             datestring = cur.toISOString().substring(0, 10); // get yyyy-mm-dd
-            if (weekday > 0 && weekday < 6 && config.holidays.indexOf(datestring) == -1)
+            if (isworkday[i])
                 curPoints -= pointsPerDay;
             cur.setDate(cur.getDate() + 1);
+            i += 1;
         }
 
         // lay out chart
@@ -313,34 +315,25 @@ function showRepo(owner, repo) {
     )
 }
 
-function showMenu(owner, repo) {
-    if (owner && repo) {
-        var form = $('<form method="GET" action="">' + 
-            'Owner: <input type="text" name="owner" value="' + owner + '"><br/>' + 
-            'Repo: <input type="text" name="repo" value="' + repo + '"><br/>' +
-            'Milestone: <input type="text" name="milestone" value="' + milestone + '"><br/>' +
-            '<input type="submit" value="Submit">' +
-            '</form>');
-        $("#chart").append(form);
-    }
-}
-
 $(document).ready(function(){
-
 
     $.getJSON( "config.json", function( cfg ) {
 
         config = cfg;
 
-        // parse hash; should be like #ualbertalib/hydranorth/20
-        if (owner && repo && milestone) {
-            config.owner = owner;
-            config.repo = repo;
-            config.milestone = milestone;
-        }
+        var owner = $.urlParam("owner");
+        owner = (owner === undefined) ? config.owner : owner;
+        var repo = $.urlParam("repo");
+        repo = (repo === undefined) ? config.repo : repo;
+        var milestone = $.urlParam("milestone");
 
-        //showMilestone(config.owner, config.repo, config.milestone);
-        showRepo(config.owner, config.repo)
+        // we assume config has a default owner and repo - only question
+        // is whether we have a milestone
+
+        if (milestone)
+            showMilestone(owner, repo, milestone, config);
+        else
+            showRepo(owner, repo);
     })
 
 });
