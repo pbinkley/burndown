@@ -283,26 +283,47 @@ function showMilestone(owner, repo, milestone) {
 }
 
 function showRepo(owner, repo) {
+    var format = d3.time.format("%a, %e %b %Y");
 
     $.getJSON('https://api.github.com/repos/' + config.owner + '/' + config.repo + 
         '/milestones?state=open&sort=due_on&direction=desc', 
         function(data){
-            // note: sorting on due date, descending - milestones without due dates sort to end
+            // note: sorted on due date, descending - milestones without due dates sort to end
+            var form = '<form method="GET" action="">' + 
+                'Owner: <input type="text" name="owner" value="' + owner + '" readonly><br/>' + 
+                'Repo: <input type="text" name="repo" value="' + repo + '" readonly><br/>' +
+                '<ul>';
+            $.each(data, function(i, milestone) {
+                form += '<li><input type="radio" name="milestone" ' + ((i == 0) ? 'checked ' : '') +
+                'value="' + milestone.number + '"/>';
+                form += '<a href="' + milestone.html_url + '">' + milestone.title + "</a>";
+                form += ' (' + milestone.open_issues + ' open, ' + milestone.closed_issues + ' closed)';
+                if (milestone.due_on) {
+                    var d = new Date(milestone.due_on);
+                    form += ' (ends ' + format(d) + ')';
+                }
+                form += "</li>";
+            });
+            form += "</ul>";
 
-            if (owner && repo) {
-                var form = $('<form method="GET" action="">' + 
-                    'Owner: <input type="text" name="owner" value="' + owner + '"><br/>' + 
-                    'Repo: <input type="text" name="repo" value="' + repo + '"><br/>' +
-                    'Milestone: <input type="text" name="milestone" value="' + milestone + '"><br/>' +
-                    '<input type="submit" value="Submit">' +
-                    '</form>');
-                $("#chart").append(form);
-            }
+
+               form += '<input type="submit" value="Submit"></form>';
+            $("#chart").append($(form));
         }
     )
 }
 
-
+function showMenu(owner, repo) {
+    if (owner && repo) {
+        var form = $('<form method="GET" action="">' + 
+            'Owner: <input type="text" name="owner" value="' + owner + '"><br/>' + 
+            'Repo: <input type="text" name="repo" value="' + repo + '"><br/>' +
+            'Milestone: <input type="text" name="milestone" value="' + milestone + '"><br/>' +
+            '<input type="submit" value="Submit">' +
+            '</form>');
+        $("#chart").append(form);
+    }
+}
 
 $(document).ready(function(){
 
@@ -318,8 +339,8 @@ $(document).ready(function(){
             config.milestone = milestone;
         }
 
-        showMilestone(config.owner, config.repo, config.milestone);
-        //showRepo(config.owner, config.repo)
+        //showMilestone(config.owner, config.repo, config.milestone);
+        showRepo(config.owner, config.repo)
     })
 
 });
