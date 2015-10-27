@@ -9,6 +9,7 @@ $.urlParam = function(name, url) {
     return results[1] || undefined;
 }
 
+var config;
 var issuedata = {
     "closed": {"issues": 0, "points": 0},
     "wip": {"issues": 0, "points": 0},
@@ -60,7 +61,7 @@ function showIssue(issue) {
 
 }
 
-function showMilestone(owner, repo, milestone, config) {
+function showMilestone(owner, repo, milestone) {
 
     var perPage = 30,
     totalPages = 0,
@@ -284,33 +285,38 @@ function showMilestone(owner, repo, milestone, config) {
 
 }
 
-function showRepo(owner, repo) {
+function showRepo(owner, repo, milestone) {
+    // only value of milestone is "current": redirect to first milestone in list
     var format = d3.time.format("%a, %e %b %Y");
 
     $.getJSON('https://api.github.com/repos/' + config.owner + '/' + config.repo + 
         '/milestones?state=open&sort=due_on&direction=desc', 
         function(data){
-            // note: sorted on due date, descending - milestones without due dates sort to end
-            var form = '<form method="GET" action="">' + 
-                'Owner: <input type="text" name="owner" value="' + owner + '" readonly><br/>' + 
-                'Repo: <input type="text" name="repo" value="' + repo + '" readonly><br/>' +
-                '<ul>';
-            $.each(data, function(i, milestone) {
-                form += '<li><input type="radio" name="milestone" ' + ((i == 0) ? 'checked ' : '') +
-                'value="' + milestone.number + '"/>';
-                form += '<a href="' + milestone.html_url + '">' + milestone.title + "</a>";
-                form += ' (' + milestone.open_issues + ' open, ' + milestone.closed_issues + ' closed)';
-                if (milestone.due_on) {
-                    var d = new Date(milestone.due_on);
-                    form += ' (ends ' + format(d) + ')';
-                }
-                form += "</li>";
-            });
-            form += "</ul>";
-
-
-               form += '<input type="submit" value="Submit"></form>';
-            $("#chart").append($(form));
+            if (milestone == "current") {
+                var current = data[0].number;
+                showMilestone(owner, repo, current, config);
+            }
+            else {
+                // note: sorted on due date, descending - milestones without due dates sort to end
+                var form = '<form method="GET" action="">' + 
+                    'Owner: <input type="text" name="owner" value="' + owner + '" readonly><br/>' + 
+                    'Repo: <input type="text" name="repo" value="' + repo + '" readonly><br/>' +
+                    '<ul>';
+                $.each(data, function(i, milestone) {
+                    form += '<li><input type="radio" name="milestone" ' + ((i == 0) ? 'checked ' : '') +
+                    'value="' + milestone.number + '"/>';
+                    form += '<a href="' + milestone.html_url + '">' + milestone.title + "</a>";
+                    form += ' (' + milestone.open_issues + ' open, ' + milestone.closed_issues + ' closed)';
+                    if (milestone.due_on) {
+                        var d = new Date(milestone.due_on);
+                        form += ' (ends ' + format(d) + ')';
+                    }
+                    form += "</li>";
+                });
+                form += "</ul>";
+                form += '<input type="submit" value="Submit"></form>';
+                $("#chart").append($(form));
+            }
         }
     )
 }
@@ -330,10 +336,12 @@ $(document).ready(function(){
         // we assume config has a default owner and repo - only question
         // is whether we have a milestone
 
-        if (milestone)
-            showMilestone(owner, repo, milestone, config);
+        if (milestone == "current")
+            showRepo(owner, repo, milestone);
+        else if (milestone)
+            showMilestone(owner, repo, milestone);
         else
-            showRepo(owner, repo);
+            showRepo(owner, repo, milestone);
     })
 
 });
