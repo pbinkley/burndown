@@ -224,7 +224,14 @@ function showMilestone(owner, repo, milestone) {
             i += 1;
         }
 
-        // lay out chart
+        renderChart(ideal, actual, totalPoints);
+
+    })
+
+}
+
+function renderChart(ideal, actual, totalPoints) {
+            // lay out chart
 
         var margin = {top: 20, right: 20, bottom: 30, left: 50},
         width = 960 - margin.left - margin.right,
@@ -313,8 +320,6 @@ function showMilestone(owner, repo, milestone) {
         .datum(actual)
         .attr("class", "line actual")
         .attr("d", actualLine);
-
-    })
 
 }
 
