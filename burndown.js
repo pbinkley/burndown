@@ -9,7 +9,7 @@ $.urlParam = function(name, url) {
     return results[1] || undefined;
 }
 
-var config;
+var config, repodata;
 var issuedata = {
     "closed": {"issues": 0, "points": 0},
     "wip": {"issues": 0, "points": 0},
@@ -121,8 +121,6 @@ function showMilestone(owner, repo, milestone) {
             showIssue(jsonData[i]);
         });
 
-        // update headings
-        $("#h1").html(config.owner + '/' + config.repo + ": " + milestonedata.title);
         // add counts to column headers
         for (status in issuedata) {
             var data = issuedata[status];
@@ -130,14 +128,12 @@ function showMilestone(owner, repo, milestone) {
                 + data.points + " points)");
         }
 
+        // update headings
+        $("#h1").html("<a href='" + repodata.html_url + "'>" + repodata.full_name + "</a>: <a href='" + milestonedata.html_url + "'>" + milestonedata.title + "</a>");
+        $("#description").html(repodata.description);
+        document.title = milestonedata.title + " / " + repodata.full_name;
+
         // prepare data for d3
-        /*
-        var ideal = [
-            {date: new Date(2013, 1, 26), points: 50},
-            // Fill in the rest of the points!
-            {date: new Date(2013, 2, 8), points: 0}
-        ];
-        */
         end = new Date(milestonedata.due_on);
         end.setDate(end.getDate() + 1);
         start = new Date(milestonedata.due_on);
@@ -297,6 +293,11 @@ function showRepo(owner, repo, milestone) {
                 showMilestone(owner, repo, current, config);
             }
             else {
+                        // update headings
+                $("#h1").html("<a href='" + repodata.html_url + "'>" + repodata.full_name + "</a>");
+                $("#description").html(repodata.description);
+                document.title = repodata.full_name;
+
                 // note: sorted on due date, descending - milestones without due dates sort to end
                 var form = '<form method="GET" action="">' + 
                     'Owner: <input type="text" name="owner" value="' + owner + '" readonly><br/>' + 
@@ -333,15 +334,22 @@ $(document).ready(function(){
         repo = (repo === undefined) ? config.repo : repo;
         var milestone = $.urlParam("milestone");
 
-        // we assume config has a default owner and repo - only question
-        // is whether we have a milestone
+        $.getJSON('https://api.github.com/repos/' + owner + '/' + repo, 
+            function(data){
 
-        if (milestone == "current")
-            showRepo(owner, repo, milestone);
-        else if (milestone)
-            showMilestone(owner, repo, milestone);
-        else
-            showRepo(owner, repo, milestone);
+            repodata = data;
+
+            // we assume config has a default owner and repo - only question
+            // is whether we have a milestone
+
+            if (milestone == "current")
+                showRepo(owner, repo, milestone);
+            else if (milestone)
+                showMilestone(owner, repo, milestone);
+            else
+                showRepo(owner, repo, milestone);
+        });
+
     })
 
 });
