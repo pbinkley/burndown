@@ -4,26 +4,33 @@
         <title>GitHub Milestone Burndown Chart</title>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+        <link type="text/css" rel="stylesheet" href="vendor/bootstrap-3.3.5-dist/css/bootstrap.min.css"/>
         <link type="text/css" rel="stylesheet" href="burndown.css"/>
+
         <script type="text/javascript" charset="utf-8" src="vendor/jquery-latest.js"></script>
-       	<script type="text/javascript" src="vendor/d3.v3.min.js"></script>        
+       	<script type="text/javascript" src="vendor/d3.v3.min.js"></script>
         <script type="text/javascript" src="burndown.js"></script>
+        <script type="text/javascript" src="vendor/bootstrap-3.3.5-dist/js/bootstrap.min.js"></script>
     </head>
     <body>
-        <h1 id="h1">Fetching...</h1>
-        <p id="description"></p>
-        <div id="container">
+        <div class="container"/>
+            <div class="page-header">
+                <h1 id="h1">Fetching...</h1>
+                <p id="description"></p>
+            </div>
             <div id="chart"></div>
-            <div id="issues">
-                <div class="list" id="closed">
-                    <h2>Closed <span id="closeddata"></span></h2>
-                </div>
-                <div class="list" id="wip">
-                    <h2>WIP <span id="wipdata"></span></h2>
-                </div>
-                <div class="list" id="ready">
-                    <h2>Ready <span id="readydata"></span></h2>
-                </div>
+            <div class="row" id="issues">
+                    <div class="list col-md-4" id="closed">
+                        <h2>Closed <span id="closeddata"></span></h2>
+                    </div>
+                    <div class="list col-md-4" id="wip">
+                        <h2>WIP <span id="wipdata"></span></h2>
+                    </div>
+                    <div class="list col-md-4" id="ready">
+                        <h2>Ready <span id="readydata"></span></h2>
+                    </div>
+                
             </div>
         </div>
     </body>

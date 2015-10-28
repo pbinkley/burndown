@@ -1,12 +1,8 @@
-#container, footer, header {
-    margin: .5em; 
-}
 #chart {
 	border: 1px solid black;
 }
 .list {
     line-height: 125%; 
-    float: left;
 }
 .list ul {
     margin-bottom: 30px;
@@ -18,11 +14,7 @@
     float: left;
 }
 
-/* MEDIA QUERIES */
-@media screen and (min-width: 47.5em ) {
-    .list {float: left; width: 33%;}
-    #chart {margin-left: auto; margin-right: auto;}
-    }
+/* SVG elements */
 .axis path,
 .axis line {
   	fill: none;
