@@ -29,7 +29,7 @@ function sortByClosedAt(a, b){
 function showIssue(ul, issue) {
     // build li element containing issue description
     // attach to appropriate ul in issues div
-    var li = $("<li>");
+    var li = $("<li class='list-group-item'>");
     if (issue.assignee) {
         li.append("<img class='avatar' " +
             "src='" + issue.assignee.avatar_url + "'" +
@@ -37,12 +37,12 @@ function showIssue(ul, issue) {
             "></img>")
     }
     var a = $("<a href='" + issue.html_url + "'>");
-    a.append(issue.number);
+    a.append("#").append(issue.number);
     li.append(a);
     li.append(": " + issue.title);
 
     for (var i = 0; i < issue.labels.length; i++) {
-        li.append("<span class='label' style='background: #" + 
+        li.append(" <span class='label' style='background: #" + 
             issue.labels[i].color + "'>" +
             issue.labels[i].name) + "</span>";
     }
@@ -149,7 +149,7 @@ function showMilestone(owner, repo, milestone) {
         $.each(["closed", "wip", "ready"], function(j, status) {
             $.each(priorities, function(i, priority) {
                 if (sortedIssues[priority][status]) {
-                    ul = $("<ul class='" + priority + "'>")
+                    ul = $("<ul class='" + priority + " list-group'>")
                         $.each(sortedIssues[priority][status], function(k, issue){
                             showIssue(ul, issue);
                         });
@@ -230,78 +230,76 @@ function showMilestone(owner, repo, milestone) {
 
 }
 
-function renderChart(ideal, actual, totalPoints) {
-            // lay out chart
+// global vars for chart
+var width, margin, x, y, chart;
 
-        var margin = {top: 20, right: 20, bottom: 30, left: 50},
-        width = 960 - margin.left - margin.right,
-        height = 500 - margin.top - margin.bottom;
-        var x = d3.time.scale()
+function renderChart(ideal, actual, totalPoints) {
+    // lay out chart
+    margin = {top: 30, right: 10, bottom: 30, left: 30};
+    width = parseInt(d3.select('#chart').style('width'), 10);
+    width = width - margin.left - margin.right;
+    percent = d3.format('%');
+    height = 500 - margin.top - margin.bottom;
+    x = d3.time.scale()
         .range([0, width]);
-        var y = d3.scale.linear()
+    y = d3.scale.linear()
         .range([height, 0]);
 
 
-        var idealLine = d3.svg.line()
+    var idealLine = d3.svg.line()
         .x(function(d) { return x(d.date); })
         .y(function(d) { return y(d.points); });
-        var actualLine = d3.svg.line()
+    var actualLine = d3.svg.line()
         .x(function(d) { return x(d.date); })
         .y(function(d) { return y(totalPoints - d.points); });
 
-        x.domain(d3.extent(ideal, function(d){return d.date;}));
-        y.domain([0, totalPoints]);
+    x.domain(d3.extent(ideal, function(d){return d.date;}));
+    y.domain([0, totalPoints]);
 
-        function make_x_axis() {
-            return d3.svg.axis()
-            .scale(x)
-            .orient("bottom")
-            .tickFormat(d3.time.format("%a %e"))
-        }
+    xAxis = d3.svg.axis()
+        .scale(x)
+        .orient("bottom")
+        .tickFormat(d3.time.format("%a %e"))
+        .tickSize(-height, 0, 0);
+    
+    yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .tickSize(-width, 0, 0);
 
-        function make_y_axis() {
-            return d3.svg.axis()
-            .scale(y)
-            .orient("left");
-        }
-
-        var chart = d3.select("#chart").append("svg")
+    chart = d3.select("#chart").append("svg")
         .attr("class", "chart")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        // center the day labels under their column
-        // based on http://stackoverflow.com/questions/17544546/d3-js-align-text-labels-between-ticks-on-the-axis/17544785#answer-17630938
-        function adjustTextLabels(selection) {
-            // remove last label (for the day after the end of the milestone)
-            labels = selection.selectAll('.chart text');
-            labels[0][labels[0].length - 1].remove();
-            // transform remaining labels: move right 1/2 width of day column
-            selection.selectAll('.chart text')
-            .attr('transform', 'translate(' + daysToPixels(1) / 2 + ',0)');
-        }
+    // center the day labels under their column
+    // based on http://stackoverflow.com/questions/17544546/d3-js-align-text-labels-between-ticks-on-the-axis/17544785#answer-17630938
+    function adjustTextLabels(selection) {
+        // remove last label (for the day after the end of the milestone)
+        labels = selection.selectAll('.chart text');
+        labels[0][labels[0].length - 1].remove();
+        // transform remaining labels: move right 1/2 width of day column
+        selection.selectAll('.chart text')
+        .attr('transform', 'translate(' + daysToPixels(1) / 2 + ',0)');
+    }
 
-        // calculate the width of the days in the timeScale
-        function daysToPixels(days, timeScale) {
-            var d1 = new Date();
-            return x(d3.time.day.offset(d1, days)) - x(d1);
-        }
+    // calculate the width of the days in the timeScale
+    function daysToPixels(days, timeScale) {
+        var d1 = new Date();
+        return x(d3.time.day.offset(d1, days)) - x(d1);
+    }
 
-        chart.append("g")         
+    chart.append("g")         
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
-        .call(make_x_axis()
-            .tickSize(-height, 0, 0)
-            )
+        .call(xAxis)
         .call(adjustTextLabels);     // adjusts text labels on the axis 
 
-        chart.append("g")
+    chart.append("g")
         .attr("class", "y axis")
-        .call(make_y_axis()
-            .tickSize(-width, 0, 0)
-            )
+        .call(yAxis)
         .append("text")
         .attr("transform", "rotate(-90)")
         .attr("y", -40)
@@ -309,14 +307,14 @@ function renderChart(ideal, actual, totalPoints) {
         .style("text-anchor", "end")
         .text("Points");
 
-        // Paint the ideal line
-        chart.append("path")
+    // Paint the ideal line
+    chart.append("path")
         .datum(ideal)
         .attr("class", "line ideal")
         .attr("d", idealLine);
 
-        // Paint the actual line
-        chart.append("path")
+    // Paint the actual line
+    chart.append("path")
         .datum(actual)
         .attr("class", "line actual")
         .attr("d", actualLine);
