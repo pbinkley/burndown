@@ -153,7 +153,7 @@ function showMilestone(owner, repo, milestone) {
                         $.each(sortedIssues[priority][status], function(k, issue){
                             showIssue(ul, issue);
                         });
-                    $("#" + status).append(ul);
+                    $("#" + status).append($("<h3>" + priority + "</h3>")).append(ul);
                 }
             });
         });

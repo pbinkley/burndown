@@ -14,7 +14,15 @@
     color: #000;
     text-shadow: 2px 2px 5px #fff;
 }
-
+h2, div.counts {
+    text-align: center;
+}
+div.counts {
+    margin-bottom: 10px;
+}
+h3 {
+    font-size: 18px;
+}
 /* SVG elements */
 .axis path,
 .axis line {
