@@ -41,12 +41,15 @@ function showIssue(ul, issue) {
     li.append(a);
     li.append(": " + issue.title);
 
-    for (var i = 0; i < issue.labels.length; i++) {
-        li.append(" <span class='label' style='background: #" + 
+    if (issue.labels.length > 0) {
+	labels = $("<div class='labels'>")
+	li.append(labels);
+for (var i = 0; i < issue.labels.length; i++) {
+        labels.append(" <span class='label' style='background: #" + 
             issue.labels[i].color + "'>" +
             issue.labels[i].name) + "</span>";
     }
-
+}
     ul.append(li);
 
 }
@@ -261,7 +264,6 @@ function renderChart(ideal, actual, totalPoints) {
         .orient("bottom")
         .tickFormat(d3.time.format("%a %e"))
         .tickSize(-height, 0, 0);
-    
     yAxis = d3.svg.axis()
         .scale(y)
         .orient("left")

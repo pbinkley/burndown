@@ -10,6 +10,10 @@
 .list ul li img {
     float: left;
 }
+.labels {
+    margin-top: 5px;
+    text-align: right;
+}
 .label {
     color: #000;
     text-shadow: 2px 2px 5px #fff;
@@ -23,6 +27,7 @@ div.counts {
 h3 {
     font-size: 18px;
 }
+
 /* SVG elements */
 .axis path,
 .axis line {
