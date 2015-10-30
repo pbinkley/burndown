@@ -10,6 +10,10 @@
 .list ul li img {
     float: left;
 }
+.label {
+    color: #000;
+    text-shadow: 2px 2px 5px #fff;
+}
 
 /* SVG elements */
 .axis path,
