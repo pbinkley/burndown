@@ -41,15 +41,34 @@ function showIssue(ul, issue) {
     li.append(a);
     li.append(": " + issue.title + " (" + issue.comments + "&nbsp;comment" +
         (issue.comments == 1 ? "" : "s") + ")");
+    var trigger = $('<a data-toggle="modal" data-target="#modal' + issue.number +'"> [+]</button>');
+    li.append(trigger);
 
     if (issue.labels.length > 0) {
 	labels = $("<div class='labels'>")
 	li.append(labels);
-for (var i = 0; i < issue.labels.length; i++) {
+    for (var i = 0; i < issue.labels.length; i++) {
         labels.append(" <span class='label' style='background: #" + 
             issue.labels[i].color + "'>" +
             issue.labels[i].name) + "</span>";
     }
+    var modal = $('<div id="modal' + issue.number + '" class="modal fade" role="dialog">' +
+          '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
+              '<div class="modal-header">' +
+                '<button type="button" class="close" data-dismiss="modal">&times;</button>' +
+                '<h4 class="modal-title">#' + issue.number + ' ' + issue.title + '</h4>' +
+              '</div>' +
+              '<div class="modal-body">' +
+                '<p>' + markdown.toHTML(issue.body) + '</p>' +
+              '</div>' +
+              '<div class="modal-footer">' +
+                '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>');
+    li.append(modal);
 }
     ul.append(li);
 
