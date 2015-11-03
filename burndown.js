@@ -243,9 +243,21 @@ function renderChart(ideal, actual, totalPoints) {
     width = width - margin.left - margin.right;
     percent = d3.format('%');
     height = 500 - margin.top - margin.bottom;
-    x = d3.time.scale()
+
+    var customformat = d3.time.format.multi([
+  [".%L", function(d) { return d.getMilliseconds(); }],
+  [":%S", function(d) { return d.getSeconds(); }],
+  ["%I:%M", function(d) { return d.getMinutes(); }],
+  ["%I %p", function(d) { return d.getHours(); }],
+  ["%a %e", function(d) { return d.getDay() && d.getDate() != 1; }],
+  ["%b %d", function(d) { return d.getDate() != 1; }],
+  ["%B", function(d) { return d.getMonth(); }],
+  ["%Y", function() { return true; }]
+]);
+    
+    var x = d3.time.scale()
         .range([0, width]);
-    y = d3.scale.linear()
+    var y = d3.scale.linear()
         .range([height, 0]);
 
 
@@ -262,7 +274,7 @@ function renderChart(ideal, actual, totalPoints) {
     xAxis = d3.svg.axis()
         .scale(x)
         .orient("bottom")
-        .tickFormat(d3.time.format("%a %e"))
+        .tickFormat(customformat)
         .tickSize(-height, 0, 0);
     yAxis = d3.svg.axis()
         .scale(y)
