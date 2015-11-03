@@ -39,7 +39,8 @@ function showIssue(ul, issue) {
     var a = $("<a href='" + issue.html_url + "'>");
     a.append("#").append(issue.number);
     li.append(a);
-    li.append(": " + issue.title);
+    li.append(": " + issue.title + " (" + issue.comments + "&nbsp;comment" +
+        (issue.comments == 1 ? "" : "s") + ")");
 
     if (issue.labels.length > 0) {
 	labels = $("<div class='labels'>")
