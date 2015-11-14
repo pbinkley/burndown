@@ -28,18 +28,27 @@ function sortByClosedAt(a, b){
     return date1 > date2 ? 1 : -1;
 }
 
+function showPerson(person) {
+   return "<img class='avatar' " +
+            "src='" + person.avatar_url + "'" +
+            "title='" + person.login + "'" + 
+            "></img>";
+}
+
 function showIssue(ul, issue) {
     // build li element containing issue description
     // attach to appropriate ul in issues div
     var li = $("<li class='list-group-item'>");
-    var assignee;
-    if (issue.assignee) {
-        assignee = "<img class='avatar' " +
-            "src='" + issue.assignee.avatar_url + "'" +
-            "title='" + issue.assignee.login + "'" + 
-            "></img>";
-        li.append(assignee);
+    var user = "";
+    if (issue.user) {
+        user = showPerson(issue.user);
     }
+    var assignee = "";
+    if (issue.assignee) {
+        assignee = " ≻ " + showPerson(issue.assignee);
+    }
+    people = "<span class='people'>" + user + assignee + "</span>"
+    li.append(people);
     var a = $("<a href='" + issue.html_url + "'>");
     a.append("#").append(issue.number);
     li.append(a);
@@ -76,7 +85,7 @@ if (pull[0]) {
             '<div class="modal-content">' +
               '<div class="modal-header">' +
                 '<button type="button" class="close" data-dismiss="modal">&times;</button>' +
-                '<h4 class="modal-title">' + assignee + ' #' + issue.number + ' ' + issue.title + '</h4>' +
+                '<h4 class="modal-title">' + people + ' #' + issue.number + ' ' + issue.title + '</h4>' +
               '</div>' +
               '<div class="modal-body">' +
                 '<p>' + markdown.toHTML(issue.body) + '</p>' +

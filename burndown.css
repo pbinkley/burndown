@@ -14,7 +14,11 @@
   background-color: #ddd;
 }
 .list ul li img {
-    float: left;
+    margin-right: 0;
+}
+.people {
+  margin-right: 1em;
+  float: left;
 }
 .labels {
     margin-top: 5px;
