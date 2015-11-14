@@ -58,3 +58,6 @@ img.avatar {
 .label {
     margin: 0 0.5em;
 }
+.pull {
+  font-weight: bold;
+}

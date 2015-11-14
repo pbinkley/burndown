@@ -15,6 +15,8 @@ var issuedata = {
     "wip": {"issues": 0, "points": 0},
     "ready": {"issues": 0, "points": 0}
 }
+var pullmap = [];
+
 $.fn.sort = function(){
     return this.pushStack([].sort.apply(this, arguments), []);
 };
@@ -39,12 +41,13 @@ function showIssue(ul, issue) {
     var a = $("<a href='" + issue.html_url + "'>");
     a.append("#").append(issue.number);
     li.append(a);
-    li.append(": " + issue.title + " (" + issue.comments + "&nbsp;comment" +
+    li.append(": " + issue.title);
+    if (issue.comments) li.append(" (" + issue.comments + "&nbsp;comment" +
         (issue.comments == 1 ? "" : "s") + ")");
     var trigger = $('<a data-toggle="modal" data-target="#modal' + issue.number +'"> [+]</button>');
     li.append(trigger);
 
-    if (issue.labels.length > 0) {
+    if (issue.labels && issue.labels.length > 0) {
 	labels = $("<div class='labels'>")
 	li.append(labels);
     for (var i = 0; i < issue.labels.length; i++) {
@@ -52,6 +55,20 @@ function showIssue(ul, issue) {
             issue.labels[i].color + "'>" +
             issue.labels[i].name) + "</span>";
     }
+}
+    if (issue.burndown_issue) {
+        li.append($("<div class='pull'>Closes <a href='https://github.com/ualbertalib/HydraNorth/issues/" + issue.burndown_issue + "'>#" + issue.burndown_issue + "</a></div>"));
+    }
+    else {
+
+pull = $.grep( pullmap, function( n, i ) {
+  return n.issue == issue.number;
+});
+if (pull[0]) {
+    li.append($("<div class='pull'>PR <a href='https://github.com/ualbertalib/HydraNorth/pulls/" + pull[0].pull + "'>#" + pull[0].pull + "</a></div>"));
+}
+    }
+
     var modal = $('<div id="modal' + issue.number + '" class="modal fade" role="dialog">' +
           '<div class="modal-dialog">' +
             '<div class="modal-content">' +
@@ -69,12 +86,12 @@ function showIssue(ul, issue) {
           '</div>' +
         '</div>');
     li.append(modal);
-}
+
     ul.append(li);
 
 }
 
-function showMilestone(owner, repo, milestone) {
+function showMilestone(owner, repo, milestone, pulls) {
 
     var perPage = 30,
     totalPages = 0,
@@ -355,7 +372,7 @@ function renderChart(ideal, actual, totalPoints) {
 
 }
 
-function showRepo(owner, repo, milestone) {
+function showRepo(owner, repo, milestone, pulls) {
     // only value of milestone is "current": redirect to first milestone in list
     var format = d3.time.format("%a, %e %b %Y");
 
@@ -396,6 +413,27 @@ function showRepo(owner, repo, milestone) {
     )
 }
 
+function getPullIssues(pulls) {
+    // issue number: head/refs - take regex ^\d*
+    // show ref, title, body, person as in issue
+    // what about assignee?
+    // sort by date
+    // WIP label?
+    ul = $("<ul class='list-group'>")
+    $.each(pulls, function(k, pull){
+        var issue = pull.head.ref.match(/^\d*/)[0]; 
+        if (issue != '') {
+            pull.burndown_issue = issue;
+            pullmap.push({"pull": pull.number, "issue": issue});           
+        }
+        showIssue(ul, pull);
+    });
+    $("#pulls").append(ul);
+
+
+    return pulls;
+}
+
 $(document).ready(function(){
 
     $.getJSON( "config.json", function( cfg ) {
@@ -408,21 +446,27 @@ $(document).ready(function(){
         repo = (repo === undefined) ? config.repo : repo;
         var milestone = $.urlParam("milestone");
 
-        $.getJSON('https://api.github.com/repos/' + owner + '/' + repo, 
+        $.getJSON('https://api.github.com/repos/' + owner + '/' + repo + '/pulls', 
             function(data){
 
-            repodata = data;
+                var pulls = getPullIssues(data);
 
-            // we assume config has a default owner and repo - only question
-            // is whether we have a milestone
+                $.getJSON('https://api.github.com/repos/' + owner + '/' + repo, 
+                    function(data){
 
-            if (milestone == "current")
-                showRepo(owner, repo, milestone);
-            else if (milestone)
-                showMilestone(owner, repo, milestone);
-            else
-                showRepo(owner, repo, milestone);
-        });
+                    repodata = data;
+
+                    // we assume config has a default owner and repo - only question
+                    // is whether we have a milestone
+
+                    if (milestone == "current")
+                        showRepo(owner, repo, milestone, pulls);
+                    else if (milestone)
+                        showMilestone(owner, repo, milestone, pulls);
+                    else
+                        showRepo(owner, repo, milestone, pulls);
+                });
+       });
 
     })
 
