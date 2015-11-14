@@ -8,10 +8,10 @@
     margin-bottom: 30px;
 }
 .list  li {
-  background-color: #ddd;  
+  background-color: #eee;  
 }
 .list li:nth-child(2n+1) {
-  background-color: #ccc;
+  background-color: #ddd;
 }
 .list ul li img {
     float: left;
@@ -23,6 +23,9 @@
 .label {
     color: #000;
     text-shadow: 2px 2px 5px #fff;
+}
+.pull {
+  font-weight: bold;
 }
 h2, div.counts {
     text-align: center;
@@ -63,7 +66,4 @@ img.avatar {
 }
 .label {
     margin: 0 0.5em;
-}
-.pull {
-  font-weight: bold;
 }
