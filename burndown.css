@@ -7,6 +7,12 @@
 .list ul {
     margin-bottom: 30px;
 }
+.list  li {
+  background-color: #ddd;  
+}
+.list li:nth-child(2n+1) {
+  background-color: #ccc;
+}
 .list ul li img {
     float: left;
 }
