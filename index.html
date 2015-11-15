@@ -13,6 +13,58 @@
         <script type="text/javascript" src="burndown.js"></script>
         <script type="text/javascript" src="vendor/bootstrap-3.3.5-dist/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="vendor/markdown.min.js"></script>
+        <script type="text/javascript" src="vendor/mustache.js"></script>
+
+        <!-- mustache.js template, populated by showIssue() -->
+        <script id="issue_template" type="text/template">
+        <li class="list-group-item">
+            <span class="people">
+                {{#user}}
+                <img class="avatar" src="{{avatar_url}}" title="{{login}}">
+                {{/user}}
+                {{#assignee}}
+                 ≻ <img class="avatar" src="{{avatar_url}}" title="{{login}}">
+                {{/assignee}}
+            </span>
+            <a href="{{html_url}}">#{{number}}</a>: {{title}}
+            <a data-toggle="modal" data-target="#modal{{number}}"> [+]</a>
+
+            <div class="labels">
+                {{#labels}}
+                    <span class="label" style="background: #{{color}}">{{name}}</span> 
+                 {{/labels}}
+            </div>
+            {{#burndown_issue}}
+                <div class='pull'>Closes <a href='https://github.com/ualbertalib/HydraNorth/issues/{{burndown_issue}}'>#{{burndown_issue}}</a></div>
+            {{/burndown_issue}}
+            {{#burndown_pull}}
+                <div class='pull'>PR <a href='https://github.com/ualbertalib/HydraNorth/issues/{{burndown_pull}}'>#{{burndown_pull}}</a></div>
+            {{/burndown_pull}}
+            <div id="modal{{number}}" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">×</button>
+                            <h4 class="modal-title">
+                                <span class="people">
+                                    {{#user}}
+                                    <img class="avatar" src="{{avatar_url}}" title="{{login}}">
+                                    {{/user}}
+                                </span>
+                                #{{number}} {{title}}
+                            </h4>
+                        </div>
+                        <div class="modal-body">
+                            {{{burndown_showBody}}}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </li>
+        </script>
     </head>
     <body>
         <div class="container"/>

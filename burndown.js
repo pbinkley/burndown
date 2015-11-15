@@ -28,78 +28,9 @@ function sortByClosedAt(a, b){
     return date1 > date2 ? 1 : -1;
 }
 
-function showPerson(person) {
-   return "<img class='avatar' " +
-            "src='" + person.avatar_url + "'" +
-            "title='" + person.login + "'" + 
-            "></img>";
-}
-
 function showIssue(ul, issue) {
-    // build li element containing issue description
-    // attach to appropriate ul in issues div
-    var li = $("<li class='list-group-item'>");
-    var user = "";
-    if (issue.user) {
-        user = showPerson(issue.user);
-    }
-    var assignee = "";
-    if (issue.assignee) {
-        assignee = " ≻ " + showPerson(issue.assignee);
-    }
-    people = "<span class='people'>" + user + assignee + "</span>"
-    li.append(people);
-    var a = $("<a href='" + issue.html_url + "'>");
-    a.append("#").append(issue.number);
-    li.append(a);
-    li.append(": " + issue.title);
-    if (issue.comments) li.append(" (" + issue.comments + "&nbsp;comment" +
-        (issue.comments == 1 ? "" : "s") + ")");
-    var trigger = $('<a data-toggle="modal" data-target="#modal' + issue.number +'"> [+]</button>');
-    li.append(trigger);
-
-    if (issue.labels && issue.labels.length > 0) {
-	labels = $("<div class='labels'>")
-	li.append(labels);
-    for (var i = 0; i < issue.labels.length; i++) {
-        labels.append(" <span class='label' style='background: #" + 
-            issue.labels[i].color + "'>" +
-            issue.labels[i].name) + "</span>";
-    }
-}
-    if (issue.burndown_issue) {
-        li.append($("<div class='pull'>Closes <a href='https://github.com/ualbertalib/HydraNorth/issues/" + issue.burndown_issue + "'>#" + issue.burndown_issue + "</a></div>"));
-    }
-    else {
-
-pull = $.grep( pullmap, function( n, i ) {
-  return n.issue == issue.number;
-});
-if (pull[0]) {
-    li.append($("<div class='pull'>PR <a href='https://github.com/ualbertalib/HydraNorth/pulls/" + pull[0].pull + "'>#" + pull[0].pull + "</a></div>"));
-}
-    }
-
-    var modal = $('<div id="modal' + issue.number + '" class="modal fade" role="dialog">' +
-          '<div class="modal-dialog">' +
-            '<div class="modal-content">' +
-              '<div class="modal-header">' +
-                '<button type="button" class="close" data-dismiss="modal">&times;</button>' +
-                '<h4 class="modal-title">' + people + ' #' + issue.number + ' ' + issue.title + '</h4>' +
-              '</div>' +
-              '<div class="modal-body">' +
-                '<p>' + markdown.toHTML(issue.body) + '</p>' +
-              '</div>' +
-              '<div class="modal-footer">' +
-                '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
-        '</div>');
-    li.append(modal);
-
-    ul.append(li);
-
+    template = $('#issue_template').html();
+    ul.append(Mustache.to_html(template, issue));
 }
 
 function showMilestone(owner, repo, milestone, pulls) {
@@ -193,6 +124,19 @@ function showMilestone(owner, repo, milestone, pulls) {
                 if (!sortedIssues["none"][status])
                     sortedIssues["none"][status] = [];
                 sortedIssues["none"][status].push(issue);
+            }
+
+            // add associated PR
+            pull = $.grep( pullmap, function( n, i ) {
+                return n.issue == issue.number;
+            });
+            if (pull[0]) {
+                issue.burndown_pull = pull[0].pull;
+            }
+
+            // add markdown transformation function
+            issue.burndown_showBody = function () {
+                return markdown.toHTML(this.body)
             }
         });
 
