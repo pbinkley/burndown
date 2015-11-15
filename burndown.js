@@ -45,18 +45,18 @@ function showMilestone(owner, repo, milestone, pulls) {
     actual = [], jsonData = [], issueData = [],
     ideal;
 
-    // fetch milestone from GitHub API
+    // fetch issues in milestone from GitHub API
     $.getJSON('https://api.github.com/repos/' + owner + '/' + repo + 
         '/issues?' + 
         '&state=all&sort=created&direction=asc&milestone=' + milestone, 
         function(data){
 
         // sort issues by closed timestamp, to build the graph
-        jsonData = data.sort(sortByClosedAt);
+        issues = data.sort(sortByClosedAt);
 
         // count open and closed issues
-        $.each(jsonData, function(i, item){
-            if(!jsonData[i].closed_at)
+        $.each(issues, function(i, issue){
+            if(!issue.closed_at)
                 numberOfOpenIssues++;
             else
                 numberOfClosedIssues++;
@@ -67,13 +67,13 @@ function showMilestone(owner, repo, milestone, pulls) {
         milestonedata = null;
 
         // parse issues
-        $.each(jsonData, function(i, item){
+        $.each(issues, function(i, issue){
             if (milestonedata == null) {
-                milestonedata = jsonData[i].milestone;
+                milestonedata = issue.milestone;
             }
             var points = config.defaultpoints;
             var labelnames = [];
-            $.each (jsonData[i].labels, function(i, label){
+            $.each (issue.labels, function(i, label){
                 labelnames.push(label.name);
             });
             // lookup up size labels
@@ -82,13 +82,13 @@ function showMilestone(owner, repo, milestone, pulls) {
                 // this is how you break out of $.each
                 return false;
             });
-            jsonData[i].burndown_points = points;
+            issue.burndown_points = points;
             totalPoints += points;
-            if(jsonData[i].closed_at){
+            if(issue.closed_at){
                 closedPoints += points;
                 numberOfClosedIssues++;
-                actual.push({date: new Date(jsonData[i].closed_at), points: closedPoints});
-                issueData.push('#' + jsonData[i].number + ': ' + jsonData[i].title);
+                actual.push({date: new Date(issue.closed_at), points: closedPoints});
+                issueData.push('#' + issue.number + ': ' + issue.title);
             }
         });
 
@@ -101,7 +101,7 @@ function showMilestone(owner, repo, milestone, pulls) {
             sortedIssues[priority] = [];
         });
         // populate arrays of issues according to priority label
-        $.each(jsonData, function(i, issue){
+        $.each(issues, function(i, issue){
             var status;
             if (issue.closed_at)
                 status="closed"
