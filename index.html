@@ -14,6 +14,7 @@
         <script type="text/javascript" src="vendor/bootstrap-3.3.5-dist/js/bootstrap.min.js"></script>
         <script type="text/javascript" src="vendor/markdown.min.js"></script>
         <script type="text/javascript" src="vendor/mustache.js"></script>
+        <script type="text/javascript" src="vendor/moment.js"></script>
 
         <!-- mustache.js template, populated by showIssue() -->
         <script id="people_template" type="text/template">
@@ -31,6 +32,7 @@
             {{>people}}
             <a href="{{html_url}}">#{{number}}</a>: {{title}}
             <a data-toggle="modal" data-target="#modal{{number}}"> [+]</a>
+             {{#burndown_isPull}}<br/>({{burndown_showTime}}){{/burndown_isPull}}
 
             <div class="labels">
                 {{#labels}}

@@ -17,8 +17,13 @@ var issuedata = {
 }
 var pullmap = [];
 var showBody = function () {
-            return markdown.toHTML(this.body)
-        };
+    return markdown.toHTML(this.body)
+};
+var showTime = function() {
+    var m = moment(this.created_at);
+    var f = "ddd, MMM Do, HH:mm";
+    return m.format(f);
+};
 $.fn.sort = function(){
     return this.pushStack([].sort.apply(this, arguments), []);
 };
@@ -139,6 +144,7 @@ function showMilestone(owner, repo, milestone, pulls) {
 
             // add markdown transformation function
             issue.burndown_showBody = showBody;
+            issue.burndown_showTime = showTime;
         });
 
         // show issues in columns
@@ -391,6 +397,8 @@ function getPullIssues(pulls) {
         }
         // add markdown transformation function
         pull.burndown_showBody = showBody;
+        pull.burndown_showTime = showTime;
+        pull.burndown_isPull = true;
         showIssue(ul, pull);
     });
     $("#pulls").append(ul);
