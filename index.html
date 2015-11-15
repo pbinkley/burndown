@@ -35,7 +35,9 @@
                  {{/labels}}
             </div>
             {{#burndown_issue}}
-                <div class='pull'>Closes <a href='https://github.com/ualbertalib/HydraNorth/issues/{{burndown_issue}}'>#{{burndown_issue}}</a></div>
+                <div><span class='pull'>Closes <a href='https://github.com/ualbertalib/HydraNorth/issues/{{burndown_issue}}'>#{{burndown_issue}}</a></span>
+                (<a href="https://github.com/ualbertalib/HydraNorth/tree/{{head.ref}}">{{head.ref}}</a>)
+                </div>
             {{/burndown_issue}}
             {{#burndown_pull}}
                 <div class='pull'>PR <a href='https://github.com/ualbertalib/HydraNorth/issues/{{burndown_pull}}'>#{{burndown_pull}}</a></div>
