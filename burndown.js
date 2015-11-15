@@ -16,7 +16,9 @@ var issuedata = {
     "ready": {"issues": 0, "points": 0}
 }
 var pullmap = [];
-
+var showBody = function () {
+            return markdown.toHTML(this.body)
+        };
 $.fn.sort = function(){
     return this.pushStack([].sort.apply(this, arguments), []);
 };
@@ -136,9 +138,7 @@ function showMilestone(owner, repo, milestone, pulls) {
             }
 
             // add markdown transformation function
-            issue.burndown_showBody = function () {
-                return markdown.toHTML(this.body)
-            }
+            issue.burndown_showBody = showBody;
         });
 
         // show issues in columns
@@ -389,6 +389,8 @@ function getPullIssues(pulls) {
             pull.burndown_issue = issue;
             pullmap.push({"pull": pull.number, "issue": issue});           
         }
+        // add markdown transformation function
+        pull.burndown_showBody = showBody;
         showIssue(ul, pull);
     });
     $("#pulls").append(ul);
