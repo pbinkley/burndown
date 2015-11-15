@@ -425,14 +425,21 @@ function showRepo(owner, repo, milestone, pulls) {
 }
 
 function getPullIssues(pulls) {
-    // issue number: head/refs - take regex ^\d*
-    // show ref, title, body, person as in issue
-    // what about assignee?
-    // sort by date
-    // WIP label?
-    ul = $("<ul class='list-group'>")
+    ul = $("<ul class='list-group'>");
+    initial_number_re = /^\d+/;
+    // see https://help.github.com/articles/closing-issues-via-commit-messages/
+    closes_number_re = /[Close|Closed|Closes|Fix|Fixed|Fixes|Resolve|Resolved|Resolves] \#\d+/i;
+    number_re = /\d+/;
     $.each(pulls, function(k, pull){
-        var issue = pull.head.ref.match(/^\d*/)[0]; 
+        // look for issue number at beginning of branch name
+        var issue = initial_number_re.exec(pull.head.ref); 
+        // or in a "Closes" phrase in body
+        if (issue == null) {
+            issue = closes_number_re.exec(pull.body);
+            if (issue != null) 
+                issue = number_re.exec(issue);
+        }
+        // if we have an associated issue, store it
         if (issue != '') {
             pull.burndown_issue = issue;
             pullmap.push({"pull": pull.number, "issue": issue});           

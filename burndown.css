@@ -8,10 +8,10 @@
     margin-bottom: 30px;
 }
 .list  li {
-  background-color: #eee;  
+  background-color: #f8f8f8;  
 }
 .list li:nth-child(2n+1) {
-  background-color: #ddd;
+  background-color: #f0f0f0;
 }
 .list ul li img {
     margin-right: 0;
