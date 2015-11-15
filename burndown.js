@@ -29,8 +29,9 @@ function sortByClosedAt(a, b){
 }
 
 function showIssue(ul, issue) {
-    template = $('#issue_template').html();
-    ul.append(Mustache.to_html(template, issue));
+    issue_template = $('#issue_template').html();
+    people_template = $('#people_template').html();
+    ul.append(Mustache.to_html(issue_template, issue, {people: people_template}));
 }
 
 function showMilestone(owner, repo, milestone, pulls) {

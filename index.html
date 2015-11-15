@@ -16,8 +16,7 @@
         <script type="text/javascript" src="vendor/mustache.js"></script>
 
         <!-- mustache.js template, populated by showIssue() -->
-        <script id="issue_template" type="text/template">
-        <li class="list-group-item">
+        <script id="people_template" type="text/template">
             <span class="people">
                 {{#user}}
                 <img class="avatar" src="{{avatar_url}}" title="{{login}}">
@@ -26,6 +25,10 @@
                  ≻ <img class="avatar" src="{{avatar_url}}" title="{{login}}">
                 {{/assignee}}
             </span>
+        </script>
+        <script id="issue_template" type="text/template">
+        <li class="list-group-item">
+            {{>people}}
             <a href="{{html_url}}">#{{number}}</a>: {{title}}
             <a data-toggle="modal" data-target="#modal{{number}}"> [+]</a>
 
@@ -48,11 +51,7 @@
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal">×</button>
                             <h4 class="modal-title">
-                                <span class="people">
-                                    {{#user}}
-                                    <img class="avatar" src="{{avatar_url}}" title="{{login}}">
-                                    {{/user}}
-                                </span>
+                                {{>people}}
                                 #{{number}} {{title}}
                             </h4>
                         </div>
