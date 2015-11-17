@@ -352,24 +352,20 @@ function showRepo(owner, repo, milestone, pulls) {
                 document.title = repodata.full_name;
 
                 // note: sorted on due date, descending - milestones without due dates sort to end
-                var form = '<form method="GET" action="">' + 
-                    'Owner: <input type="text" name="owner" value="' + owner + '" readonly><br/>' + 
-                    'Repo: <input type="text" name="repo" value="' + repo + '" readonly><br/>' +
-                    '<ul>';
-                $.each(data, function(i, milestone) {
-                    form += '<li><input type="radio" name="milestone" ' + ((i == 0) ? 'checked ' : '') +
-                    'value="' + milestone.number + '"/>';
-                    form += '<a href="' + milestone.html_url + '">' + milestone.title + "</a>";
-                    form += ' (' + milestone.open_issues + ' open, ' + milestone.closed_issues + ' closed)';
-                    if (milestone.due_on) {
-                        var d = new Date(milestone.due_on);
-                        form += ' (ends ' + format(d) + ')';
-                    }
-                    form += "</li>";
+
+                $.each(data, function(i, milestone){
+                    // add formatted due date for display
+                    if (milestone["due_on"])
+                        milestone["burndown_due_on"] = format(new Date(milestone["due_on"]))
                 });
-                form += "</ul>";
-                form += '<input type="submit" value="Submit"></form>';
-                $("#chart").append($(form));
+
+                repodata = {
+                    "owner": owner,
+                    "repo": repo,
+                    "milestones": data
+                }
+                repo_template = $('#repo_template').html();
+                $("#chart").append(Mustache.to_html(repo_template, repodata));
             }
         }
     )

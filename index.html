@@ -68,6 +68,24 @@
             </div>
         </li>
         </script>
+        <script id="repo_template" type="text/template">
+            <form method="GET" action="">
+                Owner: <input type="text" name="owner" value="{{owner}}" readonly><br/>
+                Repo: <input type="text" name="repo" value="{{repo}}" readonly><br/>
+                <ul>
+                    {{#milestones}}
+                    <li>
+                        <input type="radio" name="milestone" value="{{number}}"/>
+                        <a href="{{html_url}}">{{title}}</a>
+                        ({{open_issues}} open, {{closed_issues}} closed)
+                        {{#burndown_due_on}})
+                            (ends {{burndown_due_on}})
+                        {{/burndown_due_on}}
+                    </li>
+                    {{/milestones}}
+                </ul>
+                <input type="submit" value="Submit"></form>
+            </script>
     </head>
     <body>
         <div class="container"/>
