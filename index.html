@@ -16,7 +16,15 @@
         <script type="text/javascript" src="vendor/mustache.js"></script>
         <script type="text/javascript" src="vendor/moment.js"></script>
 
-        <!-- mustache.js template, populated by showIssue() -->
+        <!-- mustache.js templates, populated by showIssue() -->
+
+
+        <script id="heading_template" type="text/template">
+            <h1 id="h1">
+                <a href="{{html_url}}">{{full_name}}</a>
+            </h1>
+            <p id="description">{{description}}</p>
+        </script>
         <script id="people_template" type="text/template">
             <span class="people">
                 {{#user}}
@@ -89,7 +97,7 @@
     </head>
     <body>
         <div class="container"/>
-            <div class="page-header">
+            <div id="heading" class="page-header">
                 <h1 id="h1">Fetching...</h1>
                 <p id="description"></p>
             </div>

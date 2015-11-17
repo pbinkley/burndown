@@ -346,9 +346,8 @@ function showRepo(owner, repo, milestone, pulls) {
                 showMilestone(owner, repo, current, config);
             }
             else {
-                        // update headings
-                $("#h1").html("<a href='" + repodata.html_url + "'>" + repodata.full_name + "</a>");
-                $("#description").html(repodata.description);
+                heading_template = $('#heading_template').html();
+                $("#heading").html(Mustache.to_html(heading_template, repodata));
                 document.title = repodata.full_name;
 
                 // note: sorted on due date, descending - milestones without due dates sort to end
