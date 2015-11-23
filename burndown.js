@@ -96,9 +96,11 @@ function showMilestone(owner, repo, milestone, pulls) {
             });
             // translate size labels into points
             $.each (config.sizes, function(i, size) {
-                if (labelnames.indexOf(size.label) > - 1) points = size.points;
-                // this is how you break out of $.each
-                return false;
+                if (labelnames.indexOf(size.label) > - 1) {
+                    points = size.points;
+                    // this is how you break out of $.each
+                    return false;
+                }
             });
             issue.burndown_points = points;
             totalPoints += points;
