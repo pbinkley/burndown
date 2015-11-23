@@ -1,3 +1,4 @@
+// get url params
 $.urlParam = function(name, url) {
     if (!url) {
      url = window.location.href;
@@ -9,6 +10,7 @@ $.urlParam = function(name, url) {
     return results[1] || undefined;
 }
 
+// global variables
 var config, repodata;
 var issuedata = {
     "closed": {"issues": 0, "points": 0},
@@ -16,6 +18,10 @@ var issuedata = {
     "ready": {"issues": 0, "points": 0}
 }
 var pullmap = [];
+// global vars for chart
+var width, margin, x, y, chart;
+
+// functions to be passed to mustache.js
 var showBody = function () {
     return markdown.toHTML(this.body)
 };
@@ -24,6 +30,7 @@ var showTime = function() {
     var f = "ddd, MMM Do, HH:mm";
     return m.format(f);
 };
+
 $.fn.sort = function(){
     return this.pushStack([].sort.apply(this, arguments), []);
 };
@@ -35,14 +42,15 @@ function sortByClosedAt(a, b){
     return date1 > date2 ? 1 : -1;
 }
 
+// display issue as list element
 function showIssue(ul, issue) {
     issue_template = $('#issue_template').html();
     people_template = $('#people_template').html();
     ul.append(Mustache.to_html(issue_template, issue, {people: people_template}));
 }
 
+// display milestone, including chart and lists of PRs and issues
 function showMilestone(owner, repo, milestone, pulls) {
-
     var perPage = 30,
     totalPages = 0,
     totalIssues = 0,
@@ -57,10 +65,10 @@ function showMilestone(owner, repo, milestone, pulls) {
     $.getJSON('https://api.github.com/repos/' + owner + '/' + repo + 
         '/issues?' + 
         '&state=all&sort=created&direction=asc&milestone=' + milestone, 
-        function(data){
+        function(issues_rsp){
 
         // sort issues by closed timestamp, to build the graph
-        issues = data.sort(sortByClosedAt);
+        issues = issues_rsp.sort(sortByClosedAt);
 
         // count open and closed issues
         $.each(issues, function(i, issue){
@@ -76,6 +84,8 @@ function showMilestone(owner, repo, milestone, pulls) {
 
         // parse issues
         $.each(issues, function(i, issue){
+            // collect milestone data - it's the same in every issue
+            // since they all come from the same milestone
             if (milestonedata == null) {
                 milestonedata = issue.milestone;
             }
@@ -84,7 +94,7 @@ function showMilestone(owner, repo, milestone, pulls) {
             $.each (issue.labels, function(i, label){
                 labelnames.push(label.name);
             });
-            // lookup up size labels
+            // translate size labels into points
             $.each (config.sizes, function(i, size) {
                 if (labelnames.indexOf(size.label) > - 1) points = size.points;
                 // this is how you break out of $.each
@@ -119,6 +129,7 @@ function showMilestone(owner, repo, milestone, pulls) {
             issuedata[status].issues += 1;
             issuedata[status].points += issue.burndown_points;
 
+            // look for priority label
             var labelFound = false;
             $.each(issue.labels, function(j, label){
                 if ($.inArray(label.name, config.priorities) > -1) {
@@ -128,6 +139,7 @@ function showMilestone(owner, repo, milestone, pulls) {
                     labelFound = true;
                 }
             });
+            // if priority label not found, put in "none" list
             if (!labelFound) {
                 if (!sortedIssues["none"][status])
                     sortedIssues["none"][status] = [];
@@ -232,9 +244,10 @@ function showMilestone(owner, repo, milestone, pulls) {
 
 }
 
-// global vars for chart
-var width, margin, x, y, chart;
-
+// render chart with D3
+// inputs: ideal and actual lines, total points (to give y axis)
+// x axis date range is derived from ideal line, which has all the
+//   days in the sprint
 function renderChart(ideal, actual, totalPoints) {
     // lay out chart
     margin = {top: 30, right: 10, bottom: 30, left: 30};
@@ -244,15 +257,15 @@ function renderChart(ideal, actual, totalPoints) {
     height = 500 - margin.top - margin.bottom;
 
     var customformat = d3.time.format.multi([
-  [".%L", function(d) { return d.getMilliseconds(); }],
-  [":%S", function(d) { return d.getSeconds(); }],
-  ["%I:%M", function(d) { return d.getMinutes(); }],
-  ["%I %p", function(d) { return d.getHours(); }],
-  ["%a %e", function(d) { return d.getDay() && d.getDate() != 1; }],
-  ["%b %d", function(d) { return d.getDate() != 1; }],
-  ["%B", function(d) { return d.getMonth(); }],
-  ["%Y", function() { return true; }]
-]);
+      [".%L", function(d) { return d.getMilliseconds(); }],
+      [":%S", function(d) { return d.getSeconds(); }],
+      ["%I:%M", function(d) { return d.getMinutes(); }],
+      ["%I %p", function(d) { return d.getHours(); }],
+      ["%a %e", function(d) { return d.getDay() && d.getDate() != 1; }],
+      ["%b %d", function(d) { return d.getDate() != 1; }],
+      ["%B", function(d) { return d.getMonth(); }],
+      ["%Y", function() { return true; }]
+    ]);
     
     var x = d3.time.scale()
         .range([0, width]);
@@ -287,6 +300,10 @@ function renderChart(ideal, actual, totalPoints) {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+    // calculate pixels in a day on the x axis
+    var dummyday = new Date();
+    var daypixels = x(d3.time.day.offset(dummyday, 1)) - x(dummyday);
+
     // center the day labels under their column
     // based on http://stackoverflow.com/questions/17544546/d3-js-align-text-labels-between-ticks-on-the-axis/17544785#answer-17630938
     function adjustTextLabels(selection) {
@@ -295,20 +312,14 @@ function renderChart(ideal, actual, totalPoints) {
         labels[0][labels[0].length - 1].remove();
         // transform remaining labels: move right 1/2 width of day column
         selection.selectAll('.chart text')
-        .attr('transform', 'translate(' + daysToPixels(1) / 2 + ',0)');
-    }
-
-    // calculate the width of the days in the timeScale
-    function daysToPixels(days, timeScale) {
-        var d1 = new Date();
-        return x(d3.time.day.offset(d1, days)) - x(d1);
+        .attr('transform', 'translate(' + daypixels / 2 + ',0)');
     }
 
     chart.append("g")         
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis)
-        .call(adjustTextLabels);     // adjusts text labels on the axis 
+        .call(adjustTextLabels);     // centers text labels under their columns 
 
     chart.append("g")
         .attr("class", "y axis")
@@ -334,15 +345,16 @@ function renderChart(ideal, actual, totalPoints) {
 
 }
 
+// show the repo, with menu of milestones
+// if milestone=current, redirect to first milestone on list
 function showRepo(owner, repo, milestone, pulls) {
-    // only value of milestone is "current": redirect to first milestone in list
     var format = d3.time.format("%a, %e %b %Y");
 
     $.getJSON('https://api.github.com/repos/' + config.owner + '/' + config.repo + 
         '/milestones?state=open&sort=due_on&direction=desc', 
-        function(data){
+        function(milestones_rsp){
             if (milestone == "current") {
-                var current = data[0].number;
+                var current = milestones_rsp[0].number;
                 showMilestone(owner, repo, current, config);
             }
             else {
@@ -352,7 +364,7 @@ function showRepo(owner, repo, milestone, pulls) {
 
                 // note: sorted on due date, descending - milestones without due dates sort to end
 
-                $.each(data, function(i, milestone){
+                $.each(milestones_rsp, function(i, milestone){
                     // add formatted due date for display
                     if (milestone["due_on"])
                         milestone["burndown_due_on"] = format(new Date(milestone["due_on"]))
@@ -361,7 +373,7 @@ function showRepo(owner, repo, milestone, pulls) {
                 repodata = {
                     "owner": owner,
                     "repo": repo,
-                    "milestones": data
+                    "milestones": milestones_rsp
                 }
                 repo_template = $('#repo_template').html();
                 $("#chart").append(Mustache.to_html(repo_template, repodata));
@@ -370,7 +382,8 @@ function showRepo(owner, repo, milestone, pulls) {
     )
 }
 
-function getPullIssues(pulls) {
+// show list of pull requests 
+function showPullIssues(pulls) {
     ul = $("<ul class='list-group'>");
     initial_number_re = /^\d+/;
     // see https://help.github.com/articles/closing-issues-via-commit-messages/
@@ -404,10 +417,13 @@ function getPullIssues(pulls) {
 
 $(document).ready(function(){
 
+    // fetch config
     $.getJSON( "config.json", function( cfg ) {
 
+        // store config in global var
         config = cfg;
 
+        // determine owner, repo and milestone from params and config
         var owner = $.urlParam("owner");
         owner = (owner === undefined) ? config.owner : owner;
         var repo = $.urlParam("repo");
@@ -415,23 +431,28 @@ $(document).ready(function(){
         var milestone = $.urlParam("milestone");
 
         $.getJSON('https://api.github.com/repos/' + owner + '/' + repo + '/pulls', 
-            function(data){
+            function(pulls_rsp){
 
-                var pulls = getPullIssues(data);
+                var pulls = showPullIssues(pulls_rsp);
 
                 $.getJSON('https://api.github.com/repos/' + owner + '/' + repo, 
-                    function(data){
+                    function(repo_rsp){
 
-                    repodata = data;
+                    // set global variable
+                    repodata = repo_rsp;
 
                     // we assume config has a default owner and repo - only question
                     // is whether we have a milestone
 
                     if (milestone == "current")
+                        // go to showRepo to fetch list of milestones and
+                        // redirect to the current one
                         showRepo(owner, repo, milestone, pulls);
                     else if (milestone)
+                        // show selected milestone
                         showMilestone(owner, repo, milestone, pulls);
                     else
+                        // show menu of milestones
                         showRepo(owner, repo, milestone, pulls);
                 });
        });
